@@ -1,0 +1,16 @@
+{
+  "_comment": "Defaults for the harmonization. Start dates checked against the FIRMS Archive Download page (Nov 2026): MODIS 2000-11-01, SNPP 2012-01-20, NOAA-20 2018-04-01, NOAA-21 2024-01-17. Aqua start (2002-07-04) is from memory. harmonize.py warns when data disagree. 'end': null = still operating.",
+  "grid_res": 0.25,
+  "tile_cells": 20,
+  "viirs_reference_start": "2012-02",
+  "calibration_window": ["2012-02", "2019-12"],
+  "shrinkage_kappa": 10,
+  "min_confidence_numeric": 30,
+  "satellites": {
+    "Terra":  {"family": "MODIS", "start": "2000-11-01", "end": null},
+    "Aqua":   {"family": "MODIS", "start": "2002-07-04", "end": null},
+    "SNPP":   {"family": "VIIRS", "start": "2012-01-20", "end": null},
+    "NOAA20": {"family": "VIIRS", "start": "2018-04-01", "end": null},
+    "NOAA21": {"family": "VIIRS", "start": "2023-03-01", "end": null}
+  }
+}

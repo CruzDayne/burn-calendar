@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Burn Calendar — NASA Space Apps 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="vendor/leaflet.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="sheet">
+
+<div class="mast-top mono">
+  <span>NASA Space Apps 2026 &nbsp;/&nbsp; MODIS and VIIRS hot spots</span>
+  <span>ASTRIX TEAM</span>
+</div>
+<div id="notice" class="notice mono" hidden role="status"></div>
+
+<!-- ───── 1. The globe ───── -->
+<section class="hero" id="top">
+  <div class="hero-copy">
+    <p class="kicker mono">Burn Calendar</p>
+    <div>
+      <h1>Twenty-six years of fire, one month at a time.</h1>
+      <p class="lede">Satellites have been counting hotspots since 2000. Two instruments did the counting, and they don’t agree. We lined them up, so the record reads the same from the first month to the last.</p>
+    </div>
+    <div class="cta-block">
+      <button id="ctaOpen" class="btn primary big" type="button"><span>Open <b id="ctaName">California</b>’s calendar</span><svg class="ico" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></button>
+      <p class="hintline mono">Drag to turn the globe, scroll or pinch to zoom, tap a boxed region to open it.</p>
+      <div id="chipsHero" class="chips" aria-label="Regions"></div>
+    </div>
+  </div>
+  <div class="globe-col">
+    <div class="globe-wrap"><canvas id="globe" aria-label="Globe showing monthly fire hotspots from 2000 to now. Boxed regions can be opened."></canvas><div id="gTip" class="gtip mono" hidden></div><div class="zoomctl" role="group" aria-label="Zoom the globe"><button type="button" id="gZin" aria-label="Zoom in">+</button><button type="button" id="gZout" aria-label="Zoom out">−</button><button type="button" id="gReset" aria-label="Reset the view">⟲</button></div></div>
+    <div class="hud">
+      <div class="gdate" id="gDate" aria-live="off">2018 Jul</div>
+      <div class="hud-ctl">
+        <button id="gPlay" class="btn small" type="button" aria-label="Pause the time-lapse">Pause</button>
+        <input id="gScrub" type="range" min="0" max="1" value="0" aria-label="Month of the time-lapse">
+      </div>
+      <div class="gkey mono"><span>fewer</span><i></i><span>more hotspots</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ───── 2. One place, one calendar ───── -->
+<section class="chapter" id="calendarChapter">
+  <div class="chap-head">
+    <div class="chap-title">
+      <button id="backGlobe" class="linkbtn mono" type="button">↑ Back to the globe</button>
+      <h2 id="chapTitle">California, month by month</h2>
+      <div id="chips" class="chips" aria-label="Regions"></div>
+    </div>
+    <aside class="reading" id="reading" aria-live="polite"></aside>
+  </div>
+
+  <div class="stage" aria-label="Burn calendar">
+    <div class="stage-head">
+      <h3>The calendar</h3>
+      <div class="stage-tools">
+        <button id="helpBtn" class="linkbtn mono" type="button" aria-expanded="false" aria-controls="helpBox">How to read this</button>
+        <button id="moreBtn" class="linkbtn mono" type="button" aria-pressed="false">Show more detail</button>
+      </div>
+    </div>
+    <div id="helpBox" class="helpbox" hidden>
+      <ol>
+        <li>Each <b>row</b> is a year, each <b>box</b> a month.</li>
+        <li><b>Darker</b> means more hotspots detected.</li>
+        <li>The heavy dashed line (with more detail on) is where the record switches from the older MODIS instrument to VIIRS.</li>
+        <li><b>Hover</b> or tap a box for its numbers. <b>Click</b> it to open that month on the map.</li>
+      </ol>
+      <div id="facts" class="facts"></div>
+    </div>
+    <div id="readout" class="readout mono" aria-live="polite"></div>
+    <div id="calendar" class="calwrap"></div>
+    <div id="legend" class="legendwrap"></div>
+    <p id="calSub" class="mono calsub"></p>
+    <details class="tableview"><summary class="mono">Same numbers as a table</summary><div id="tableView"></div></details>
+  </div>
+
+  <div class="deeper">
+    <h3><span class="n mono">+</span>Go deeper</h3>
+    <div class="index" id="tabs" role="tablist" aria-label="More on this area">
+      <button type="button" role="tab" data-p="compare" aria-selected="false" aria-controls="p-compare"><span class="n mono">01</span><span class="t">Is this month unusual?</span><span class="d">Against the normal, and the season</span></button>
+      <button type="button" role="tab" data-p="worst" aria-selected="false" aria-controls="p-worst"><span class="n mono">02</span><span class="t">The worst months</span><span class="d">The ten heaviest, ranked</span></button>
+      <button type="button" role="tab" data-p="map" aria-selected="false" aria-controls="p-map"><span class="n mono">03</span><span class="t">Where it burned</span><span class="d">A map, and your own box</span></button>
+      <button type="button" role="tab" data-p="options" aria-selected="false" aria-controls="p-options"><span class="n mono">04</span><span class="t">Dates and colours</span><span class="d">Period, scale, what “normal” means</span></button>
+      <button type="button" role="tab" data-p="export" aria-selected="false" aria-controls="p-export"><span class="n mono">05</span><span class="t">Take the numbers</span><span class="d">CSV files for this area</span></button>
+      <button type="button" role="tab" data-p="method" aria-selected="false" aria-controls="p-method"><span class="n mono">06</span><span class="t">How it was built</span><span class="d">The harmonization, and its limits</span></button>
+    </div>
+
+    <div id="panels">
+      <section class="panel" id="p-compare" role="tabpanel" hidden>
+        <div class="two">
+          <div id="nowCard" class="now"></div>
+          <div class="season">
+            <div class="stage-head"><h3>The season</h3><label class="inline mono"><span>Draw year</span> <select id="focusYear"></select></label></div>
+            <div id="season" class="calwrap"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="p-worst" role="tabpanel" hidden>
+        <div class="stage-head"><h3>Worst months on record</h3><p class="mono">click a row to open it</p></div>
+        <div id="ledger"></div>
+      </section>
+
+      <section class="panel" id="p-map" role="tabpanel" hidden>
+        <div class="two map2">
+          <div class="mapbox">
+            <div class="maphead"><h3 id="mapTitle">Where it burned</h3><button id="mapReset" class="linkbtn mono" type="button" hidden>whole period</button></div>
+            <div id="map" aria-label="Map of the selected area, hotspots per 0.25 degree cell"></div>
+            <div id="mapLegend" class="maplegend mono"></div>
+          </div>
+          <div class="areactl">
+            <h3>Your own box</h3>
+            <p class="hint">Type a bounding box in degrees, or draw one on the map. It has to fall inside the dashed outlines, which mark where this dataset has coverage.</p>
+            <table class="bbox" aria-label="Bounding box, degrees">
+              <tr><th>N</th><td><input id="bN" type="number" step="0.25" min="-90" max="90"></td><th>E</th><td><input id="bE" type="number" step="0.25" min="-180" max="180"></td></tr>
+              <tr><th>S</th><td><input id="bS" type="number" step="0.25" min="-90" max="90"></td><th>W</th><td><input id="bW" type="number" step="0.25" min="-180" max="180"></td></tr>
+            </table>
+            <button id="drawBtn" class="btn" type="button"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" stroke-dasharray="4 3"/></svg><span>Draw a box on the map</span></button>
+            <p id="coverNote" class="hint"></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="p-options" role="tabpanel" hidden>
+        <div class="opts">
+          <div>
+            <h3>Period</h3>
+            <div class="pair"><label><span>From</span><input id="from" type="month"></label><label><span>To</span><input id="to" type="month"></label></div>
+            <h3 style="margin-top:20px">What counts as normal</h3>
+            <div class="pair"><label><span>Years from</span><input id="baseFrom" type="number" min="2000" max="2100" step="1"></label><label><span>to</span><input id="baseTo" type="number" min="2000" max="2100" step="1"></label></div>
+            <p class="hint">Normal is the median of the same calendar month across these years, leaving out the month’s own year.</p>
+          </div>
+          <div>
+            <h3>Colour the calendar by</h3>
+            <div class="seg" id="metricSeg" role="radiogroup" aria-label="Calendar metric">
+              <button type="button" data-v="count" role="radio">Hotspot count</button>
+              <button type="button" data-v="anomaly" role="radio">Change vs. normal</button>
+              <button type="button" data-v="pct" role="radio">Percentile</button>
+            </div>
+            <div class="seg small" id="scaleSeg" role="radiogroup" aria-label="Colour scale">
+              <button type="button" data-v="sqrt" role="radio">Square root</button>
+              <button type="button" data-v="quantile" role="radio">Rank</button>
+              <button type="button" data-v="linear" role="radio">Linear</button>
+            </div>
+            <label class="check"><input id="showVals" type="checkbox"><span>Print the number in each box</span></label>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="p-export" role="tabpanel" hidden>
+        <div class="opts">
+          <div>
+            <h3>CSV for this area and period</h3>
+            <ul class="exports">
+              <li><button id="dlMonth" type="button"><span>Monthly series</span><em>.csv</em><svg class="ico" viewBox="0 0 24 24"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg></button></li>
+              <li><button id="dlMatrix" type="button"><span>Year × month matrix</span><em>.csv</em><svg class="ico" viewBox="0 0 24 24"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg></button></li>
+              <li><button id="dlCells" type="button"><span>Every 0.25° cell, every month</span><em>.csv</em><svg class="ico" viewBox="0 0 24 24"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg></button></li>
+            </ul>
+          </div>
+          <p class="hint" style="align-self:end">These are monthly 0.25° aggregates of the harmonized record, not individual detections. For the raw points, download from NASA FIRMS.</p>
+        </div>
+      </section>
+
+      <section class="panel" id="p-method" role="tabpanel" hidden>
+        <div class="method-grid">
+          <ol class="steps">
+            <li><b>Clean.</b> Low-confidence detections, volcanoes, gas flares and offshore sources are dropped. What’s left is counted per 0.25° cell, per month, per satellite.</li>
+            <li><b>Count the watching, too.</b> Terra flew alone for two years, Aqua joined in July 2002, VIIRS grew from one satellite to three. Counts are divided by satellite-time in the month, so adding a satellite doesn’t read as more fire.</li>
+            <li><b>Put MODIS on VIIRS’s scale.</b> Over 2012–2019, when both were flying and before Terra and Aqua began to drift, we fit a ratio per 5° tile and calendar month. Sparse tiles are pulled toward the global ratio so they don’t swing.</li>
+            <li><b>Splice.</b> Calibrated MODIS up to January 2012, observed VIIRS 375 m from February 2012 on.</li>
+            <li><b>Test it on held-out years.</b> Leave one overlap year out, predict its VIIRS counts from MODIS, score the miss.</li>
+          </ol>
+          <aside class="note" id="marginNote"></aside>
+        </div>
+        <p class="limits"><b>Sources.</b> Hotspots: NASA FIRMS, MODIS Collection 6.1 (Terra, Aqua) and VIIRS 375 m (S-NPP, NOAA-20, NOAA-21), archive and near-real-time files. Coastlines: Natural Earth. Built for the NASA Space Apps Challenge 2026.</p>
+        <p class="limits">A hotspot is a thermal anomaly, not a burned acre. Counts mix how many fires, how big and how hot they are with cloud cover and overpass time. Pre-2012 values are calibrated estimates. Month-to-date figures are compared against the median pro-rated to the days elapsed, which assumes fire is spread evenly through the month.</p>
+      </section>
+    </div>
+  </div>
+</section>
+
+<footer class="foot mono"><span>All rights reserved</span></footer>
+</div>
+
+<script src="vendor/d3-array.min.js"></script>
+<script src="vendor/d3-geo.min.js"></script>
+<script src="vendor/topojson-client.min.js"></script>
+<script src="vendor/land.js"></script>
+<script src="vendor/leaflet.js"></script>
+<script src="globe.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
